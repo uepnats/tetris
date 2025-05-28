@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Virtual environments
+venv/
+env/
+
+# IDE-specific files
+.idea/  # PyCharmなど
+.vscode/ # VS Code
+*.iml
+
+# OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Log files
