@@ -51,6 +51,7 @@ game_board = [] # ゲームボードの状態
 current_mino = None # 現在操作中のテトリミノ
 mino_x, mino_y = 0, 0 # 現在のテトリミノの位置（ボード座標）
 last_fall_time = 0 # 最後に落下した時間
+score = 0 # ゲームのスコア
 
 # --- 関数定義 ---
 
@@ -62,6 +63,9 @@ def init_game():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Pygame Tetris")
     clock = pygame.time.Clock()
+
+    # フォントの初期化
+    pygame.font.init()
 
     # ゲームボードを空で初期化 (0は空セル)
     game_board = [[0 for _ in range(BOARD_WIDTH)] for _ in range(BOARD_HEIGHT)]
@@ -85,6 +89,13 @@ def draw_block(x, y, color_index):
     rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
     pygame.draw.rect(screen, COLORS[color_index], rect)
     pygame.draw.rect(screen, GRAY, rect, 1) # ブロックの境界線
+
+def draw_ui():
+    global score
+    """スコアなどのUI要素を描画"""
+    font = pygame.font.Font(None, 36)
+    score_text = font.render(f"Score: {score}", False, WHITE)
+    screen.blit(score_text, (10, 10)) # 画面の左上にスコアを表示
 
 def draw_board():
     """ゲームボードと現在操作中のテトリミノを描画"""
@@ -164,15 +175,29 @@ def solidify_mino():
 
 def clear_lines():
     """揃ったラインを消去し、上の行を落とす"""
-    global game_board
+    global game_board, score
+
     full_lines = []
     for y in range(BOARD_HEIGHT):
         if all(cell != 0 for cell in game_board[y]): # その行が全て埋まっているか
             full_lines.append(y)
 
+    num_cleared_lines = len(full_lines) # 揃ったラインの数
+
     for line_to_clear in sorted(full_lines, reverse=True): # 下から削除
         del game_board[line_to_clear]
         game_board.insert(0, [0 for _ in range(BOARD_WIDTH)]) # 新しい空の行を一番上に追加
+    
+    # スコアの加算
+    if num_cleared_lines == 1:
+        score += 100
+    elif num_cleared_lines == 2:
+        score += 300
+    elif num_cleared_lines == 3:
+        score += 500
+    elif num_cleared_lines >= 4:
+        score += 800
+
 
 def main_loop():
     """ゲームのメインループ"""
@@ -225,7 +250,7 @@ def main_loop():
         if current_mino is None:
             running = False
             continue
-        
+
         if current_time - last_fall_time > FALL_SPEED:
             if not check_collision(current_mino, mino_x, mino_y + 1):
                 mino_y += 1
@@ -237,6 +262,7 @@ def main_loop():
         # --- 描画処理 ---
         screen.fill(BLACK) # 画面を黒でクリア
         draw_board() # ボードとテトリミノを描画
+        draw_ui() # UI要素を描画
         pygame.display.flip() # 画面を更新
 
         clock.tick(FPS) # フレームレートを制限
